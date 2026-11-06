@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AI Document Extractor</title>
+<link rel="icon" href="data:," />
+<style>
+  :root {
+    --bg: #0f1115;
+    --panel: #171a21;
+    --border: #262b36;
+    --text: #e8eaed;
+    --muted: #9aa3b2;
+    --accent: #6ea8fe;
+    --accent-strong: #4a86f7;
+    --ok: #3ddc97;
+    --err: #ff6b6b;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 32px 16px 64px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  p.sub { color: var(--muted); margin: 0 0 28px; font-size: 0.95rem; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+  .tab-btn {
+    flex: 1;
+    padding: 10px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+  }
+  .tab-btn.active { color: var(--text); border-color: var(--accent); background: rgba(110,168,254,0.08); }
+
+  .dropzone {
+    display: block;
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 32px 16px;
+    text-align: center;
+    color: var(--muted);
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+  }
+  .dropzone.has-file { border-style: solid; border-color: var(--ok); background: rgba(61,220,151,0.06); }
+  body.dragging .dropzone { border-style: dashed; border-color: var(--accent); background: rgba(110,168,254,0.06); }
+  .dropzone strong { color: var(--text); }
+  .dropzone input { display: none; }
+  #file-name { margin-top: 10px; font-size: 0.9rem; color: var(--ok); word-break: break-all; }
+
+  .drop-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 10;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 12vh;
+    pointer-events: none;
+    background: rgba(110,168,254,0.08);
+    box-shadow: inset 0 0 0 3px var(--accent), inset 0 0 90px 12px rgba(110,168,254,0.45);
+    opacity: 0;
+    transition: opacity .15s;
+  }
+  body.dragging .drop-overlay { opacity: 1; }
+  .drop-overlay-msg {
+    padding: 14px 24px;
+    border-radius: 10px;
+    background: var(--panel);
+    border: 1px solid var(--accent);
+    font-weight: 600;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 160px;
+    resize: vertical;
+    background: #10131a;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    padding: 12px;
+    font-family: inherit;
+    font-size: 0.92rem;
+  }
+  textarea:focus, .dropzone:focus-visible { outline: 2px solid var(--accent); }
+
+  button.primary {
+    margin-top: 14px;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    background: var(--accent-strong);
+    color: #0b0d12;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+  }
+  button.primary:disabled { opacity: 0.5; cursor: default; }
+  button.primary:hover:not(:disabled) { background: var(--accent); }
+
+  [hidden] { display: none !important; }
+
+  .status { font-size: 0.88rem; color: var(--muted); margin-top: 10px; }
+  .status.err { color: var(--err); }
+
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+  @media (max-width: 520px) { .result-grid { grid-template-columns: 1fr; } }
+  .field { background: #10131a; border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; }
+  .field label { display: block; font-size: 0.72rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin-bottom: 4px; }
+  .field div { font-size: 0.95rem; word-break: break-word; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 6px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 500; font-size: 0.78rem; text-transform: uppercase; }
+
+  details { margin-top: 16px; }
+  summary { cursor: pointer; color: var(--muted); font-size: 0.85rem; }
+  pre { background: #10131a; border: 1px solid var(--border); border-radius: 8px; padding: 12px; overflow-x: auto; font-size: 0.8rem; }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.25); border-top-color: var(--text);
+    animation: spin .7s linear infinite; vertical-align: -2px; margin-right: 6px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="drop-overlay" aria-hidden="true">
+    <div class="drop-overlay-msg">Drop the PDF anywhere to select it</div>
+  </div>
+
+  <div class="wrap">
+    <h1>AI Document Extractor</h1>
+    <p class="sub">Upload an invoice/receipt PDF, or paste an email — Gemini turns it into structured JSON.</p>
+
+    <div class="panel">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="pdf" type="button">PDF file</button>
+        <button class="tab-btn" data-tab="text" type="button">Paste text / email</button>
+      </div>
+
+      <div id="tab-pdf">
+        <label class="dropzone" id="dropzone" tabindex="0">
+          <div id="dz-title">Drop a PDF anywhere on the page, or <strong>click to choose a file</strong></div>
+          <div id="file-name"></div>
+          <input type="file" id="file-input" accept="application/pdf" />
+        </label>
+      </div>
+
+      <div id="tab-text" hidden>
+        <textarea id="text-input" placeholder="Paste the email or document text here..."></textarea>
+      </div>
+
+      <button class="primary" id="submit-btn">Extract structured data</button>
+      <div class="status" id="status" hidden></div>
+    </div>
+
+    <div class="panel" id="result-panel" hidden>
+      <div class="result-grid" id="result-grid"></div>
+      <div id="line-items-wrap"></div>
+      <details>
+        <summary>Raw JSON</summary>
+        <pre id="raw-json"></pre>
+      </details>
+    </div>
+  </div>
+
+<script>
+  const tabButtons = document.querySelectorAll(".tab-btn");
+  const tabPdf = document.getElementById("tab-pdf");
+  const tabText = document.getElementById("tab-text");
+  const dropzone = document.getElementById("dropzone");
+  const fileInput = document.getElementById("file-input");
+  const dzTitle = document.getElementById("dz-title");
+  const fileNameEl = document.getElementById("file-name");
+  const textInput = document.getElementById("text-input");
+  const submitBtn = document.getElementById("submit-btn");
+  const statusEl = document.getElementById("status");
+  const resultPanel = document.getElementById("result-panel");
+  const resultGrid = document.getElementById("result-grid");
+  const lineItemsWrap = document.getElementById("line-items-wrap");
+  const rawJsonEl = document.getElementById("raw-json");
+
+  let activeTab = "pdf";
+  let selectedFile = null;
+
+  function showTab(name) {
+    activeTab = name;
+    tabButtons.forEach(b => b.classList.toggle("active", b.dataset.tab === name));
+    tabPdf.hidden = name !== "pdf";
+    tabText.hidden = name !== "text";
+  }
+
+  tabButtons.forEach(btn => btn.addEventListener("click", () => showTab(btn.dataset.tab)));
+
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") fileInput.click(); });
+  fileInput.addEventListener("change", () => setFile(fileInput.files[0]));
+
+  // A file can be dropped anywhere on the page. Handling the drop on the window
+  // also stops the browser from opening the PDF when the drop misses the dropzone.
+  const hasFiles = e => Array.from(e.dataTransfer?.types || []).includes("Files");
+  let dragDepth = 0;
+  const setDragging = on => document.body.classList.toggle("dragging", on);
+
+  window.addEventListener("dragenter", e => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth++;
+    setDragging(true);
+  });
+  window.addEventListener("dragover", e => { if (hasFiles(e)) e.preventDefault(); });
+  window.addEventListener("dragleave", e => {
+    if (!hasFiles(e)) return;
+    dragDepth = Math.max(0, dragDepth - 1);
+    if (dragDepth === 0) setDragging(false);
+  });
+  window.addEventListener("drop", e => {
+    if (!hasFiles(e)) return;
+    e.preventDefault();
+    dragDepth = 0;
+    setDragging(false);
+    handleDroppedFile(e.dataTransfer.files[0]);
+  });
+
+  function handleDroppedFile(f) {
+    if (!f) return;
+    if (f.type !== "application/pdf" && !/\.pdf$/i.test(f.name)) {
+      setStatus("Only PDF files are supported.", true);
+      return;
+    }
+    showTab("pdf");
+    setFile(f);
+    setStatus("");
+  }
+
+  function setFile(f) {
+    if (!f) return;
+    selectedFile = f;
+    dropzone.classList.add("has-file");
+    dzTitle.innerHTML = "PDF selected. Drop another one or <strong>click to replace it</strong>";
+    fileNameEl.textContent = `${f.name} (${formatSize(f.size)})`;
+  }
+
+  function formatSize(bytes) {
+    if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
+    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  }
+
+  function setStatus(msg, isError) {
+    statusEl.hidden = !msg;
+    statusEl.textContent = msg || "";
+    statusEl.classList.toggle("err", !!isError);
+  }
+
+  function fieldHtml(label, value) {
+    return `<div class="field"><label>${label}</label><div>${value === "" || value === null || value === undefined ? "&mdash;" : escapeHtml(String(value))}</div></div>`;
+  }
+
+  function escapeHtml(s) {
+    return s.replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+
+  function renderResult(data) {
+    resultPanel.hidden = false;
+    resultGrid.innerHTML = [
+      fieldHtml("Type", data.document_type),
+      fieldHtml("Sender", data.sender),
+      fieldHtml("Recipient", data.recipient),
+      fieldHtml("Date", data.document_date),
+      fieldHtml("Due date", data.due_date),
+      fieldHtml("Total", data.total_amount ? `${data.total_amount} ${data.currency || ""}`.trim() : "&mdash;"),
+    ].join("");
+
+    if (data.summary) {
+      resultGrid.insertAdjacentHTML("beforeend", `<div class="field" style="grid-column:1/-1"><label>Summary</label><div>${escapeHtml(data.summary)}</div></div>`);
+    }
+
+    if (Array.isArray(data.line_items) && data.line_items.length) {
+      const rows = data.line_items.map(li => `
+        <tr>
+          <td>${escapeHtml(li.description || "")}</td>
+          <td>${li.quantity ?? ""}</td>
+          <td>${li.unit_price ?? ""}</td>
+          <td>${li.amount ?? ""}</td>
+        </tr>`).join("");
+      lineItemsWrap.innerHTML = `
+        <table>
+          <thead><tr><th>Description</th><th>Qty</th><th>Unit price</th><th>Amount</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } else {
+      lineItemsWrap.innerHTML = "";
+    }
+
+    rawJsonEl.textContent = JSON.stringify(data, null, 2);
+  }
+
+  submitBtn.addEventListener("click", async () => {
+    resultPanel.hidden = true;
+    setStatus("");
+
+    let request;
+    if (activeTab === "pdf") {
+      if (!selectedFile) { setStatus("Choose a PDF file first.", true); return; }
+      const form = new FormData();
+      form.append("file", selectedFile);
+      request = fetch("/extract/pdf", { method: "POST", body: form });
+    } else {
+      if (!textInput.value.trim()) { setStatus("Paste some text first.", true); return; }
+      const form = new FormData();
+      form.append("text", textInput.value);
+      request = fetch("/extract/text", { method: "POST", body: form });
+    }
+
+    submitBtn.disabled = true;
+    statusEl.innerHTML = '<span class="spinner"></span>Extracting with Gemini...';
+    statusEl.hidden = false;
+
+    try {
+      const res = await request;
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || "Request failed");
+      setStatus("");
+      renderResult(data);
+    } catch (err) {
+      setStatus(err.message || "Something went wrong", true);
+    } finally {
+      submitBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>
