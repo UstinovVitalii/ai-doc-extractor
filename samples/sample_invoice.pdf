@@ -1,0 +1,47 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>
+endobj
+4 0 obj
+<< /Length 1046 >>
+stream
+BT
+/F1 16 Tf 1 0 0 1 50 780 Tm (INVOICE) Tj
+/F1 11 Tf 1 0 0 1 50 755 Tm (ACME Cloud Services Ltd) Tj
+/F1 11 Tf 1 0 0 1 50 741 Tm (12 Example Street, 10115 Berlin, Germany) Tj
+/F1 11 Tf 1 0 0 1 50 715 Tm (Bill to: Northwind Trading GmbH) Tj
+/F1 11 Tf 1 0 0 1 50 701 Tm (Hafenstrasse 8, 20457 Hamburg, Germany) Tj
+/F1 11 Tf 1 0 0 1 50 675 Tm (Invoice No: INV-2026-0142) Tj
+/F1 11 Tf 1 0 0 1 50 661 Tm (Invoice date: 28 October 2026) Tj
+/F1 11 Tf 1 0 0 1 50 647 Tm (Due date: 27 November 2026) Tj
+/F1 11 Tf 1 0 0 1 50 615 Tm (Description                        Qty    Unit price    Amount) Tj
+/F1 11 Tf 1 0 0 1 50 598 Tm (Website maintenance \(October\)         1       450.00     450.00) Tj
+/F1 11 Tf 1 0 0 1 50 584 Tm (Hosting, 12 months                   12        25.00     300.00) Tj
+/F1 11 Tf 1 0 0 1 50 570 Tm (SEO audit                             1       800.00     800.00) Tj
+/F1 12 Tf 1 0 0 1 50 540 Tm (Total due: EUR 1,550.00) Tj
+/F1 10 Tf 1 0 0 1 50 510 Tm (Payment by bank transfer within 30 days. Thank you for your business.) Tj
+ET
+endstream
+endobj
+5 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Courier >>
+endobj
+xref
+0 6
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000241 00000 n 
+0000001338 00000 n 
+trailer
+<< /Size 6 /Root 1 0 R >>
+startxref
+1406
+%%EOF

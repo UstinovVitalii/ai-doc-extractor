@@ -16,6 +16,34 @@ A small FastAPI service. Upload a PDF or paste text, and the Gemini API returns 
 - Google Gemini API (`gemini-2.5-flash`): the PDF is sent to the model directly, the output is constrained with `response_schema`
 - Plain HTML/JS frontend, no build step
 
+## Result
+
+A PDF dropped on the page comes back as structured fields in a few seconds.
+
+![Dropping a PDF and getting the extracted fields](docs/demo.gif)
+
+For the made-up invoice in `samples/sample_invoice.pdf` the service returns:
+
+```json
+{
+  "document_type": "invoice",
+  "sender": "ACME Cloud Services Ltd",
+  "recipient": "Northwind Trading GmbH",
+  "document_date": "2026-10-28",
+  "due_date": "2026-11-27",
+  "currency": "EUR",
+  "total_amount": 1550,
+  "line_items": [
+    { "description": "Website maintenance (October)", "quantity": 1, "unit_price": 450, "amount": 450 },
+    { "description": "Hosting, 12 months", "quantity": 12, "unit_price": 25, "amount": 300 },
+    { "description": "SEO audit", "quantity": 1, "unit_price": 800, "amount": 800 }
+  ],
+  "summary": "This invoice from ACME Cloud Services Ltd to Northwind Trading GmbH is for website maintenance, hosting, and an SEO audit, totaling EUR 1,550.00 due by November 27, 2026."
+}
+```
+
+Only a generated invoice and a short email have been tried so far. Scans and unusual layouts should be tested with real documents before relying on the output.
+
 ## Setup
 
 ```bash
@@ -28,7 +56,7 @@ copy .env.example .env       # then set GEMINI_API_KEY in .env
 uvicorn main:app --reload
 ```
 
-Open http://127.0.0.1:8000
+Open http://127.0.0.1:8000 and try it with `samples/sample_invoice.pdf`.
 
 ## API
 
