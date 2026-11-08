@@ -1,5 +1,7 @@
 # AI Document Extractor
 
+[Українська версія](README.uk.md)
+
 Turns PDFs and emails (invoices, receipts, contracts) into structured JSON.
 
 ## Problem
@@ -42,7 +44,9 @@ For the made-up invoice in `samples/sample_invoice.pdf` the service returns:
 }
 ```
 
-Only a generated invoice and a short email have been tried so far. Scans and unusual layouts should be tested with real documents before relying on the output.
+A text invoice in Ukrainian (amounts in UAH with decimal commas, the date written in words) is also read correctly. Company names and line items stay in the original language, and the `summary` comes back in English.
+
+Only generated documents have been tried so far: a PDF invoice, an email and a Ukrainian text invoice. Scans and unusual layouts should be tested with real documents before relying on the output.
 
 ## Setup
 
